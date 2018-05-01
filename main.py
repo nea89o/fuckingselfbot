@@ -64,6 +64,28 @@ def get_with_attr(arr, **attributes):
     return list(_get_with_attr())
 
 
+@bot.command(name="channel", pass_context=True)
+@check_guild
+async def channel_cmd(ctx: commands.Context, channel: discord.TextChannel = None):
+    if channel is None:
+        channel = ctx.channel
+    category: discord.CategoryChannel = channel.category
+
+    embed = discord.Embed(
+        title='Channel: %s' % channel.name,
+        description=channel.topic,
+        color=discord.Color.blurple())
+
+    embed.add_field(name="Created at", value=channel.created_at)
+    embed.add_field(name="Id", value=channel.id)
+    embed.add_field(name="Category", value="%s (%s)" % (category.name, category.id))
+    embed.add_field(name="Position", value=channel.position)
+    embed.add_field(name="Changed roles", value=', '.join(role.mention for role in channel.changed_roles))
+
+    await ctx.send(embed=embed)
+    await ctx.react('✅')
+
+
 @bot.command(name="user", pass_context=True)
 @check_guild
 async def user_cmd(ctx: commands.Context, identifier):
@@ -127,7 +149,7 @@ async def role_cmd(ctx: commands.Context):
 
 @bot.command(pass_context=True)
 @check_guild
-async def raw(ctx: commands.Context, id, quiet: bool=True):
+async def raw(ctx: commands.Context, id, quiet: bool = True):
     channel: discord.TextChannel = ctx.channel
     async for mes in channel.history(limit=2, around=Object(id=id)):
         if str(mes.id) == id:
