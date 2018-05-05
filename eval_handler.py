@@ -3,7 +3,7 @@ from typing import List, Dict, Pattern
 import discord
 
 REPLACEMENTS: Dict[Pattern, str] = {
-    re.compile(r'<@!?(?P<id>[0-9]+)>'): '(guild.get_member({id}) or client.get_user({id}))',
+    re.compile(r'<@!?(?P<id>[0-9]+)>'): '(guild.get_member({id}) if guild is not None else client.get_user({id}))',
     re.compile(r'<#(?P<id>[0-9]+)>'): '(discord.utils.get(all_channels, id={id}))',
     re.compile(r'<@&(?P<id>[0-9]+)>'): '(discord.utils.get(all_roles, id={id}))',
     # Maybe later emoji support
@@ -32,6 +32,8 @@ async def handle_eval(message: discord.Message, client: discord.Client):
         'client': client,
         'discord': discord,
     }
+    if channel.guild is not None:
+        variables['guild'] = channel.guild
     lines: List[str] = content[command_start:].strip().split('\n')
     lines[-1] = 'return ' + lines[-1]
     block: str = '\n'.join(' ' + line for line in lines)
