@@ -6,6 +6,8 @@ from discord import Object
 from discord.ext import commands
 import discord
 
+from eval_handler import handle_eval
+
 bot = commands.Bot(
     command_prefix='~',
     self_bot=True,
@@ -20,7 +22,7 @@ banned_guilds = [
 def check_guild(func):
     @wraps(func)
     async def wrapper(ctx: commands.Context, *args, **kwargs):
-        if ctx.guild.id in banned_guilds:
+        if ctx.guild is not None and ctx.guild.id in banned_guilds:
             return
         return await func(ctx, *args, **kwargs)
 
@@ -62,6 +64,13 @@ def get_with_attr(arr, **attributes):
                 yield el
 
     return list(_get_with_attr())
+
+
+@bot.command(name="eval", pass_context=True)
+async def eval_command(ctx: commands.Context):
+    await handle_eval(message=ctx.message,
+                      client=bot,
+                      )
 
 
 @bot.command(name="channel", pass_context=True)
@@ -123,7 +132,7 @@ async def user_cmd(ctx: commands.Context, identifier):
     em.set_thumbnail(url=discord_profile.avatar_url)
     em.add_field(name='Joined Discord', value=discord_profile.created_at, inline=True)
     guild: discord.Guild = ctx.guild
-    if guild.get_member(identifier) is not None:
+    if guild is not None and guild.get_member(identifier) is not None:
         member: discord.Member = guild.get_member(identifier)
         em.colour = member.color
         em.add_field(name="Permissions", value=dump_perms(member.guild_permissions), inline=True)
