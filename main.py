@@ -2,7 +2,7 @@ from functools import wraps
 from typing import List
 
 import discord.utils
-from discord import Object
+from discord import Object, Guild
 from discord.ext import commands
 import discord
 
@@ -203,13 +203,18 @@ async def dump_roles(ctx: commands.Context, roles: List[discord.Role], quiet: bo
 
 @bot.command(pass_context=True, name="roles")
 @check_guild
-async def roles_cmd(ctx: commands.Context, quiet: bool = False):
-    guild: discord.Guild = ctx.guild
+async def roles_cmd(ctx: commands.Context, guild: Guild = None,quiet: bool = False):
+    if guild is None:
+        guild = ctx.guild
     roles: List[discord.Role] = guild.roles
 
     await dump_roles(ctx, roles, quiet)
     await ctx.react('✅')
-
+MODULES = [
+    'stream_cog'
+]
+for module in MODULES:
+    bot.load_extension(module)
 
 if __name__ == '__main__':
     with open('token.txt') as f:
